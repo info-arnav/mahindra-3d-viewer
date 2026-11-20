@@ -19,7 +19,7 @@ The parent site must allow `https://mahindra.digiiq.ai` in `script-src` and `fra
 
 GitHub Pages serves JavaScript reliably at `/3d-viewer.js`. For the original `/3d-viewer?id=SCN` path, either:
 
-- mount `3d-viewer-route.cjs` on an existing Express server before authentication and serve the adjacent `embed/` and `vendor/` directories as static files, or
+- mount `3d-viewer-route.cjs` on an existing Express server before authentication and serve the adjacent `embed/` and `vendor/` directories plus `colours.js` and `colour-picker.css` as static files, or
 - add a Cloudflare redirect from path `/3d-viewer` to `https://mahindra.digiiq.ai/3d-viewer.js`, preserving the query string.
 
 The server adapter sets the JavaScript MIME type. Do not serve an HTML document as an external script.
@@ -32,6 +32,14 @@ Example server integration (existing Express installation):
 
 ```js
 app.get('/3d-viewer', require('./integration/3d-viewer-route.cjs'));
+app.get('/colours.js', (req, res) => res.sendFile(path.join(__dirname, 'colours.js')));
+app.get('/colour-picker.css', (req, res) => res.sendFile(path.join(__dirname, 'colour-picker.css')));
 app.use('/embed', express.static(path.join(__dirname, 'embed')));
 app.use('/vendor', express.static(path.join(__dirname, 'vendor')));
 ```
+
+## Exterior colours
+
+Five original colour sequences are available in both the studio and car-only embed: Deep Forest, Everest White, Galaxy Grey, Oceanic Blue and Stealth Black. Each uses72 source angles; paint is never generated or tinted in code. Colour swatches are keyboard-accessible buttons with selected and loading states. The old car remains interactive while all72 views of the next colour are fetched, decoded and uploaded; the switch preserves the current angle and zoom. The studio also preserves accessories. Failed colour loads retain the working car and can be retried from the swatch.
+
+Only the initial Deep Forest rotation is loaded at startup. Up to two prepared colour rotations remain on the GPU; other rotations are disposed and their downloads remain in the HTTP cache. High-resolution source detail loads only for the idle angle. Desktop previews are960×540 and mobile previews640×360; idle detail is lossless2400×1350 or1200×675. New colour assets and their provenance live under `https://mnm-car.digiiq.ai/assets/colours/`. The existing embed snippet is unchanged.
